@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Keripik Kebab Qiana</title>
+<style>
+  :root{
+    --kraft: #EDE3D3;
+    --kraft-dark: #DCCEB5;
+    --ink: #2B2620;
+    --ink-soft: #6B6255;
+    --stamp: #B5432A;
+    --stamp-soft: #D97757;
+    --line: #C9BBA0;
+    --paper: #FBF7EF;
+  }
+  * { box-sizing: border-box; }
+  body{
+    margin:0;
+    font-family: 'Courier New', Courier, monospace;
+    background: var(--kraft);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.015) 0px, rgba(0,0,0,0.015) 1px, transparent 1px, transparent 3px);
+    color: var(--ink);
+    display:flex;
+    justify-content:center;
+    padding: 32px 16px;
+    min-height: 100vh;
+  }
+  .receipt{
+    width: 100%;
+    max-width: 480px;
+    background: var(--paper);
+    box-shadow: 0 12px 30px rgba(43,38,32,0.18);
+    padding: 28px 24px 20px;
+    position: relative;
+  }
+  .receipt::before, .receipt::after{
+    content:"";
+    position:absolute;
+    left:0; right:0;
+    height:10px;
+    background:
+      linear-gradient(135deg, var(--paper) 25%, transparent 25.5%) 0 0,
+      linear-gradient(-135deg, var(--paper) 25%, transparent 25.5%) 0 0;
+    background-size: 14px 14px;
+    background-color: var(--kraft);
+  }
+  .receipt::before{ top:-10px; transform: rotate(180deg); }
+  .receipt::after{ bottom:-10px; }
+
+  header{
+    text-align:center;
+    border-bottom: 2px dashed var(--line);
+    padding-bottom: 14px;
+    margin-bottom: 6px;
+  }
+  .stamp{
+    display:inline-block;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-weight:700;
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: var(--stamp);
+    border: 2px solid var(--stamp);
+    border-radius: 3px;
+    padding: 3px 10px;
+    transform: rotate(-2deg);
+    margin-bottom: 10px;
+  }
+  h1{
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 22px;
+    letter-spacing: 1px;
+    margin: 0 0 4px;
+  }
+  .subtitle{
+    font-size: 11px;
+    color: var(--ink-soft);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .toolbar-wrapper{
+    display:flex;
+    flex-direction:column;
+    gap: 6px;
+    margin: 14px 0;
+  }
+  .toolbar{
+    display:flex;
+    gap:8px;
+  }
+  .toolbar input[type="text"]{
+    font-family: inherit;
+    font-size: 13px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+  }
+  .toolbar input.input-name{ flex:2; }
+  .toolbar input.input-price{ flex:1; max-width: 90px; }
+  .toolbar input.input-note{ flex:2; }
+  
+  .toolbar button{
+    font-family: inherit;
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 8px 12px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    cursor: pointer;
+  }
+  .toolbar button:hover{ background: var(--stamp); }
+
+  ul.items{
+    list-style:none;
+    margin: 8px 0;
+    padding: 0;
+    max-height: 340px;
+    overflow-y: auto;
+  }
+  li.item{
+    display:flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 2px;
+    border-bottom: 1px dotted var(--line);
+    font-size: 13.5px;
+  }
+  li.item.checked .name{ text-decoration: line-through; color: var(--ink-soft); }
+  li.item.checked .note-input{ text-decoration: line-through; color: var(--ink-soft); }
+  li.item input[type="checkbox"]{
+    width: 18px; height: 18px;
+    accent-color: var(--stamp);
+    cursor: pointer;
+    flex-shrink:0;
+  }
+  .item-info{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .name{
+    font-weight: bold;
+    word-break: break-word;
+  }
+  .note-input{
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 11px;
+    color: var(--ink-soft);
+    padding: 0;
+    margin: 0;
+    outline: none;
+    width: 100%;
+    border-bottom: 1px dashed transparent;
+  }
+  .note-input:focus{
+    border-bottom-color: var(--line);
+    background: #fff;
+  }
+  .qty-controls{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    flex-shrink:0;
+  }
+  .qty-controls button{
+    width: 20px; height: 20px;
+    border: 1px solid var(--line);
+    background: #fff;
+    cursor: pointer;
+    font-family: inherit;
+    line-height:1;
+    padding:0;
+  }
+  .qty-controls span{ width: 18px; text-align:center; font-size:12px; }
+  .price{
+    width: 80px;
+    text-align: right;
+    color: var(--ink-soft);
+    font-size: 12.5px;
+    flex-shrink:0;
+  }
+  .del{
+    background:none;
+    border:none;
+    color: var(--ink-soft);
+    cursor:pointer;
+    font-size: 14px;
+    padding: 0 2px;
+    flex-shrink:0;
+  }
+  .del:hover{ color: var(--stamp); }
+
+  .empty{
+    text-align:center;
+    color: var(--ink-soft);
+    font-size: 12px;
+    padding: 20px 0;
+  }
+
+  .divider{
+    border: none;
+    border-top: 2px dashed var(--line);
+    margin: 14px 0 10px;
+  }
+  .summary-row{
+    display:flex;
+    justify-content: space-between;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    padding: 2px 0;
+  }
+  .total-row{
+    display:flex;
+    justify-content: space-between;
+    font-size: 19px;
+    font-weight:700;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 2px solid var(--ink);
+  }
+  footer{
+    text-align:center;
+    margin-top: 18px;
+    font-size: 10.5px;
+    color: var(--ink-soft);
+    letter-spacing: 1px;
+  }
+  .barcode{
+    height: 30px;
+    margin: 10px auto 4px;
+    width: 70%;
+    background: repeating-linear-gradient(90deg, var(--ink) 0 2px, transparent 2px 4px, var(--ink) 4px 5px, transparent 5px 9px);
+    opacity: 0.85;
+  }
+</style>
+</head>
+<body>
+  <div class="receipt">
+    <header>
+      <div class="stamp">Keripik Kebab Qiana</div>
+      <h1>Daftar Jualan</h1>
+      <div class="subtitle">Centang produk yang terjual</div>
+    </header>
+
+    <div class="toolbar-wrapper">
+      <div class="toolbar">
+        <input type="text" id="newName" class="input-name" placeholder="Pemesan">
+        <input type="text" id="newPrice" class="input-price" placeholder="Hari" inputmode="numeric">
+      </div>
+      <div class="toolbar">
+        <input type="text" id="newNote" class="input-note" placeholder="Catatan (misal: ekstra pedas, Pouch)">
+        <button id="addBtn">+ Tambah</button>
+      </div>
+    </div>
+
+    <ul class="items" id="itemList"></ul>
+    <div class="empty" id="emptyMsg" style="display:none;">Belum ada produk. Tambahkan di atas.</div>
+
+    <hr class="divider">
+    <div class="summary-row"><span>Item terpilih</span><span id="countSelected">0</span></div>
+    <div class="total-row"><span>TOTAL</span><span id="totalPrice">Rp 0</span></div>
+
+    <div class="barcode"></div>
+    <footer>TERIMA KASIH — SIMPAN NOTA INI</footer>
+  </div>
+
+<script>
+  let items = [
+   { id: 1, name: "Original", price: 5000, qty: 1, checked: false },
+    { id: 2, name: "Balado", price: 5000, qty: 1, checked: false },
+    { id: 3, name: "Pedas", price: 5000, qty: 1, checked: false },
+    { id: 4, name: "Keju", price: 5000, qty: 1, checked: false },
+    { id: 5, name: "Jagung", price: 5000, qty: 1, checked: false },
+    { id: 6, name: "Original Asin", price: 5000, qty: 1, checked: false },
+  ];
+  let nextId = 7;
+
+  const listEl = document.getElementById('itemList');
+  const emptyMsg = document.getElementById('emptyMsg');
+  const totalEl = document.getElementById('totalPrice');
+  const countEl = document.getElementById('countSelected');
+  const newName = document.getElementById('newName');
+  const newPrice = document.getElementById('newPrice');
+  const newNote = document.getElementById('newNote');
+
+  function formatRupiah(n){
+    return "Rp " + n.toLocaleString('id-ID');
+  }
+
+  function render(){
+    listEl.innerHTML = '';
+    emptyMsg.style.display = items.length === 0 ? 'block' : 'none';
+
+    items.forEach(item => {
+      const li = document.createElement('li');
+      li.className = 'item' + (item.checked ? ' checked' : '');
+
+      li.innerHTML = `
+        <input type="checkbox" ${item.checked ? 'checked' : ''} data-id="${item.id}" class="chk">
+        <div class="item-info">
+          <span class="name">${item.name}</span>
+            </div>
+        <div class="qty-controls">
+          <button class="qty-minus" data-id="${item.id}">-</button>
+          <span>${item.qty}</span>
+          <button class="qty-plus" data-id="${item.id}">+</button>
+        </div>
+        <span class="price">${formatRupiah(item.price * item.qty)}</span>
+        <button class="del" data-id="${item.id}">✕</button>
+      `;
+      listEl.appendChild(li);
+    });
+
+    const selected = items.filter(i => i.checked);
+    const total = selected.reduce((sum, i) => sum + i.price * i.qty, 0);
+    totalEl.textContent = formatRupiah(total);
+    countEl.textContent = selected.length;
+
+    // Event listeners
+    document.querySelectorAll('.chk').forEach(el => {
+      el.addEventListener('change', e => {
+        const id = Number(e.target.dataset.id);
+        items = items.map(i => i.id === id ? {...i, checked: e.target.checked} : i);
+        render();
+      });
+    });
+
+    document.querySelectorAll('.note-input').forEach(el => {
+      el.addEventListener('change', e => {
+        const id = Number(e.target.dataset.id);
+        const val = e.target.value.trim();
+        items = items.map(i => i.id === id ? {...i, note: val} : i);
+      });
+    });
+
+    document.querySelectorAll('.qty-plus').forEach(el => {
+      el.addEventListener('click', e => {
+        const id = Number(e.target.dataset.id);
+        items = items.map(i => i.id === id ? {...i, qty: i.qty + 1} : i);
+        render();
+      });
+    });
+
+    document.querySelectorAll('.qty-minus').forEach(el => {
+      el.addEventListener('click', e => {
+        const id = Number(e.target.dataset.id);
+        items = items.map(i => i.id === id ? {...i, qty: Math.max(1, i.qty - 1)} : i);
+        render();
+      });
+    });
+
+    document.querySelectorAll('.del').forEach(el => {
+      el.addEventListener('click', e => {
+        const id = Number(e.target.dataset.id);
+        items = items.filter(i => i.id !== id);
+        render();
+      });
+    });
+  }
+
+  document.getElementById('addBtn').addEventListener('click', () => {
+    const name = newName.value.trim();
+    const price = parseInt(newPrice.value.replace(/\D/g, ''), 10);
+    const note = newNote.value.trim();
+
+    if(!name || !price){
+      if(!name) newName.focus();
+      else newPrice.focus();
+      return;
+    }
+
+    items.push({ id: nextId++, name, price, qty: 1, checked: false, note });
+    newName.value = '';
+    newPrice.value = '';
+    newNote.value = '';
+    newName.focus();
+    render();
+  });
+
+  newNote.addEventListener('keydown', e => {
+    if(e.key === 'Enter') document.getElementById('addBtn').click();
+  });
+  newPrice.addEventListener('keydown', e => {
+    if(e.key === 'Enter') newNote.focus();
+  });
+  newName.addEventListener('keydown', e => {
+    if(e.key === 'Enter') newPrice.focus();
+  });
+
+  render();
+</script>
+</body>
+</html>
